@@ -36,7 +36,6 @@ export function Connect() {
   };
 
   return (
-    <>
     <Dialog>
       <DialogTrigger>
         <div className="relative flex p-10 pt-4 text-3xl shadow-none outline-none">
@@ -106,7 +105,5 @@ export function Connect() {
         </div>
       </DialogContent>
     </Dialog>
-    <button onClick={onTernoaConnect}>Connect</button>
-    </>
   );
 }

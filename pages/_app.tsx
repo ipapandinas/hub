@@ -4,6 +4,8 @@ import { WalletConnectClientContextProvider } from "../contexts/WalletConnectCli
 import React, { useRef, useEffect } from "react";
 import SEO from "../constants/seo";
 
+import "../styles/globals.css";
+
 const Initialize = () => {
   const initialized = useRef<boolean>();
 
