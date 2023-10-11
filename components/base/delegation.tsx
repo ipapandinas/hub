@@ -19,7 +19,7 @@ import { useWalletConnectClient } from "../../hooks/useWalletConnectClient";
 import { getErrorMessage } from "../../lib/utils";
 import { BLOCKCHAIN_URL, SIGNATURE_TIMEOUT } from "../../lib/constants";
 import { timeoutFunction } from "../../lib/fn";
-import { retry } from "../../utils/retry";
+import { retry } from "../../lib/fn";
 
 export function GenericDelegateButton({
   disabled,

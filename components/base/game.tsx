@@ -8,6 +8,8 @@ import { useWalletConnectClient } from "../../hooks/useWalletConnectClient";
 
 import { Connect } from "./connect";
 import { GenericDelegateButton } from "./delegation";
+import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
 
 export function Game() {
   const { account, disconnect, isConnected, isInitializing, isDisconnecting } =
@@ -76,31 +78,30 @@ export function Game() {
     };
   }, []);
 
-  // if (!isClientReady || isInitializing) {
-  //   return <GameSkeleton />;
-  // }
+  if (!isClientReady || isInitializing) {
+    return <GameSkeleton />;
+  }
 
   if (!isConnected) {
     return <Connect />;
   }
 
-  // if (isLoading) {
-  //   return <GameSkeleton />;
-  // } else
-  if (nft === undefined) {
+  if (isLoading) {
+    return <GameSkeleton />;
+  } else if (nft === undefined) {
     return (
       <>
         <div className="mx-8 text-center text-2xl font-light text-slate-300">
           You need a Soulbound NFT to access the game
         </div>
-        <button
+        <Button
           className="mt-8"
           disabled={isDisconnecting}
           onClick={disconnect}
-          // variant="link"
+          variant="link"
         >
           Disconnect wallet
-        </button>
+        </Button>
       </>
     );
   }
@@ -157,14 +158,22 @@ export function Game() {
         <GenericDelegateButton disabled={hasBeenUndelegated} />
       )} */}
       <GenericDelegateButton nftId={Number.parseInt(nft.nftId)} />
-      <button
+      <Button
         className="mt-8"
         disabled={isDisconnecting}
         onClick={disconnect}
-        // variant="link"
+        variant="link"
       >
         Disconnect wallet
-      </button>
+      </Button>
+    </div>
+  );
+}
+
+export function GameSkeleton() {
+  return (
+    <div className="flex">
+      <Skeleton className="h-20 w-[200px] rounded-3xl" />
     </div>
   );
 }
