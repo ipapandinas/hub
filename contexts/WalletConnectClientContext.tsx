@@ -8,7 +8,7 @@ import {
 } from "react";
 import Client from "@walletconnect/sign-client";
 import { isMobile as checkIsMobile } from "@walletconnect/legacy-utils";
-import QRCodeModal from '@walletconnect/legacy-modal'
+import QRCodeModal from "@walletconnect/legacy-modal";
 import { ERROR } from "@walletconnect/utils";
 import { IContext } from "./types";
 import { PairingTypes, SessionTypes } from "@walletconnect/types";
@@ -224,7 +224,7 @@ export const WalletConnectClientContextProvider = ({
     if (client) {
       const redirectPromise = sleepFunction(
         () => redirectToAppIfMobile(),
-        WAIT_BEFORE_OPEN_APP,
+        WAIT_BEFORE_OPEN_APP
       );
       const resPromise = client.request<string>({
         chainId: "ternoa:18bcdb75a0bba577b084878db2dc2546",

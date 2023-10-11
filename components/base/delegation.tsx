@@ -19,6 +19,7 @@ import { useWalletConnectClient } from "../../hooks/useWalletConnectClient";
 import { getErrorMessage } from "../../lib/utils";
 import { BLOCKCHAIN_URL, SIGNATURE_TIMEOUT } from "../../lib/constants";
 import { timeoutFunction } from "../../lib/fn";
+import { retry } from "../../utils/retry";
 
 export function GenericDelegateButton({
   disabled,
@@ -58,10 +59,7 @@ export function GenericDelegateButton({
       SIGNATURE_TIMEOUT,
     )) as `0x${string}`;
     if (!signedTx) throw new Error("Unable to sign txn");
-    const { events, blockInfo } = await submitTxBlocking(
-      signedTx,
-      WaitUntil.BlockInclusion,
-    );
+    const { events, blockInfo } = await retry(submitTxBlocking, [signedTx, WaitUntil.BlockInclusion]);
     events.findEventOrThrow(NFTDelegatedEvent);
     const timestamp = blockInfo.blockHash
       ? Number(await api.query?.timestamp?.now?.at(blockInfo.blockHash))
