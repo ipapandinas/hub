@@ -1,13 +1,21 @@
 import { useState } from "react";
 import { NextPage } from "next";
-import BaseTemplate from "../components/templates/base/BaseTemplate";
 import { useWalletConnectClient } from "../hooks/useWalletConnectClient";
 import { delegateNftTx, submitTxHex } from "ternoa-js";
 import { retry } from "../utils/retry";
 
 const Home: NextPage = () => {
   const { request: walletConnectRequest } = useWalletConnectClient();
-  const { account } = useWalletConnectClient();
+  const {
+    account,
+    connect,
+    disconnect,
+    isDisconnecting,
+    isInitializing,
+    isConnected,
+    isConnecting,
+    isCreatingUri,
+  } = useWalletConnectClient();
 
   const [loading, setIsloading] = useState(false);
   const [error, setError] = useState("");
@@ -48,21 +56,33 @@ const Home: NextPage = () => {
   };
 
   return (
-    <BaseTemplate>
+    <div>
       <div>Hello</div>
       {account && <span>{account}</span>}
       <br />
+      <button onClick={() => connect(undefined)}>Connect</button>
+      <button onClick={disconnect}>Disconnect</button>
       <button onClick={delegateNft}>Delegate</button>
       <button onClick={undelefateNft}>Undelegate</button>
       <br />
       {loading && <span>{`error: ${loading}`}</span>}
+      <br />
+      {isDisconnecting && <span>{`isDisconnecting: ${isDisconnecting}`}</span>}
+      <br />
+      {isInitializing && <span>{`isInitializing: ${isInitializing}`}</span>}
+      <br />
+      {isConnected && <span>{`isConnected: ${isConnected}`}</span>}
+      <br />
+      {isConnecting && <span>{`isConnecting: ${isConnecting}`}</span>}
+      <br />
+      {isCreatingUri && <span>{`isCreatingUri: ${isCreatingUri}`}</span>}
       <br />
       {error && <span>{`error: ${error}`}</span>}
       <br />
       {hash && <span>{`hash: ${hash}`}</span>}
       <br />
       {signedHash && <span>{`signedHash: ${signedHash}`}</span>}
-    </BaseTemplate>
+    </div>
   );
 };
 

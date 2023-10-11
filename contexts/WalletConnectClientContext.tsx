@@ -11,9 +11,6 @@ import { isMobile as checkIsMobile } from "@walletconnect/legacy-utils";
 import { ERROR } from "@walletconnect/utils";
 import { IContext } from "./types";
 import { PairingTypes, SessionTypes } from "@walletconnect/types";
-import WalletConnectModal from "../components/organisms/modals/WalletConnectModal";
-import { useSelector } from "react-redux";
-import { RootState } from "../store";
 
 const DEFAULT_APP_METADATA = {
   name: "Ternoa HUB",
@@ -43,9 +40,6 @@ export const WalletConnectClientContextProvider = ({
   const [walletConnectModalUri, setWalletConnectModalUri] =
     useState<string | undefined>(undefined);
   const isMobile = checkIsMobile();
-  const currentNetwork = useSelector(
-    (state: RootState) => state.blockchain.currentNetwork
-  );
 
   const isConnected = !!session;
 
@@ -74,7 +68,7 @@ export const WalletConnectClientContextProvider = ({
         setIsCreatingUri(true);
         const requiredNamespaces = {
           ternoa: {
-            chains: [currentNetwork.ternoaChain],
+            chains: ["ternoa:18bcdb75a0bba577b084878db2dc2546"],
             events: ["polkadot_event_test"],
             methods: ["sign_message"],
           },
@@ -109,7 +103,7 @@ export const WalletConnectClientContextProvider = ({
         }
       }
     },
-    [client, currentNetwork.ternoaChain, onSessionConnected, isMobile]
+    [client, onSessionConnected, isMobile]
   );
 
   const disconnect = useCallback(async () => {
@@ -199,7 +193,7 @@ export const WalletConnectClientContextProvider = ({
   const request = async (hash: string) => {
     if (client) {
       return client.request<string>({
-        chainId: currentNetwork.ternoaChain,
+        chainId: "ternoa:18bcdb75a0bba577b084878db2dc2546",
         topic: session!.topic,
         request: {
           method: "sign_message",
@@ -226,13 +220,6 @@ export const WalletConnectClientContextProvider = ({
     }
   }, [client, createClient]);
 
-  useEffect(() => {
-    if (currentNetwork && isConnected) {
-      disconnect();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentNetwork.name]);
-
   return (
     <WalletConnectClientContext.Provider
       value={{
@@ -250,14 +237,14 @@ export const WalletConnectClientContextProvider = ({
         isCreatingUri,
       }}
     >
-      <WalletConnectModal
+      {/* <WalletConnectModal
         isOpened={Boolean(walletConnectModalUri)}
         onClose={() => {
           setWalletConnectModalUri(undefined);
           setIsConnecting(false);
         }}
         uri={walletConnectModalUri}
-      />
+      /> */}
       {children}
     </WalletConnectClientContext.Provider>
   );
