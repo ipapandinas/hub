@@ -23,6 +23,33 @@ export const WalletConnectClientContext = createContext<IContext>(
   {} as IContext
 );
 
+const WAIT_BEFORE_OPEN_APP = 1000;
+
+const sleepFunction = async (fn: any, ms: number) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(async () => {
+      try {
+        const data = await fn();
+        resolve(data);
+      } catch (err) {
+        reject(err);
+      }
+    }, ms);
+  });
+};
+
+const redirectToApp = (appendix = "") => {
+  if (typeof window !== undefined) {
+    window.location.replace(`ternoa-wallet://${appendix}`);
+  }
+};
+
+const redirectToAppIfMobile = () => {
+  if (checkIsMobile()) {
+    redirectToApp();
+  }
+};
+
 export const WalletConnectClientContextProvider = ({
   children,
 }: {
@@ -192,7 +219,11 @@ export const WalletConnectClientContextProvider = ({
 
   const request = async (hash: string) => {
     if (client) {
-      return client.request<string>({
+      const redirectPromise = sleepFunction(
+        () => redirectToAppIfMobile(),
+        WAIT_BEFORE_OPEN_APP,
+      );
+      const resPromise = client.request<string>({
         chainId: "ternoa:18bcdb75a0bba577b084878db2dc2546",
         topic: session!.topic,
         request: {
@@ -208,6 +239,8 @@ export const WalletConnectClientContextProvider = ({
           },
         },
       });
+      const values = await Promise.all([resPromise, redirectPromise]);
+      return JSON.parse(values[0] as any).signedTxHash;
     } else {
       throw new Error("Client not available");
     }

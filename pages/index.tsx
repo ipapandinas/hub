@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NextPage } from "next";
 import { useWalletConnectClient } from "../hooks/useWalletConnectClient";
 import { delegateNftTx, submitTxHex } from "ternoa-js";
-import { retry } from "../utils/retry";
 
 const Home: NextPage = () => {
   const { request: walletConnectRequest } = useWalletConnectClient();
@@ -21,6 +20,7 @@ const Home: NextPage = () => {
   const [error, setError] = useState("");
   const [hash, setHash] = useState("");
   const [signedHash, setSIgnedHash] = useState("");
+  const [res, setRes] = useState("");
 
   const delegateNft = async () => {
     setIsloading(true);
@@ -31,8 +31,9 @@ const Home: NextPage = () => {
       );
       setHash(txHash);
       const signedHash = await walletConnectRequest(txHash);
-      setSIgnedHash(JSON.parse(signedHash).signedTxHash);
-      await retry(submitTxHex, [JSON.parse(signedHash).signedTxHash]);
+      setSIgnedHash(signedHash);
+      const res = await submitTxHex(signedHash as `0x{string}`);
+      setRes(res)
     } catch (err) {
       setError(JSON.stringify(err));
     } finally {
@@ -43,11 +44,12 @@ const Home: NextPage = () => {
   const undelefateNft = async () => {
     setIsloading(true);
     try {
-      const txHash = await delegateNftTx(82093);
+      const txHash = await delegateNftTx(82093, undefined);
       setHash(txHash);
       const signedHash = await walletConnectRequest(txHash);
-      setSIgnedHash(JSON.parse(signedHash).signedTxHash);
-      await retry(submitTxHex, [JSON.parse(signedHash).signedTxHash]);
+      setSIgnedHash(signedHash);
+      const res = await submitTxHex(signedHash as `0x{string}`);
+      setRes(res)
     } catch (err) {
       setError(JSON.stringify(err));
     } finally {
@@ -82,6 +84,8 @@ const Home: NextPage = () => {
       {hash && <span>{`hash: ${hash}`}</span>}
       <br />
       {signedHash && <span>{`signedHash: ${signedHash}`}</span>}
+      <br />
+      {res && <span>{`res: ${res}`}</span>}
     </div>
   );
 };
