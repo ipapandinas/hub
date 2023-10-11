@@ -1,6 +1,3 @@
-import "@szhsin/react-menu/dist/index.css";
-import "@szhsin/react-menu/dist/transitions/slide.css";
-import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { DefaultSeo } from "next-seo";
 import { WalletConnectClientContextProvider } from "../contexts/WalletConnectClientContext";
