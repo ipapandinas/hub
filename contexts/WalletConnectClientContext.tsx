@@ -8,6 +8,7 @@ import {
 } from "react";
 import Client from "@walletconnect/sign-client";
 import { isMobile as checkIsMobile } from "@walletconnect/legacy-utils";
+import QRCodeModal from '@walletconnect/legacy-modal'
 import { ERROR } from "@walletconnect/utils";
 import { IContext } from "./types";
 import { PairingTypes, SessionTypes } from "@walletconnect/types";
@@ -110,6 +111,7 @@ export const WalletConnectClientContextProvider = ({
             console.log("URI:", uri);
             setWalletConnectModalUri(uri);
             setIsConnecting(true);
+            QRCodeModal.open(uri, undefined);
           } else {
             window.location.replace(`ternoa-wallet://wc?uri=${uri}`);
           }
@@ -127,6 +129,7 @@ export const WalletConnectClientContextProvider = ({
         setIsCreatingUri(false);
         if (!isMobile) {
           setWalletConnectModalUri(undefined);
+          QRCodeModal.close();
         }
       }
     },
