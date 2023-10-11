@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NextPage } from "next";
 import { useWalletConnectClient } from "../hooks/useWalletConnectClient";
-import { delegateNftTx, submitTxHex } from "ternoa-js";
+import { delegateNftTx, initializeApi, isApiConnected, submitTxHex } from "ternoa-js";
 
 const Home: NextPage = () => {
   const { request: walletConnectRequest } = useWalletConnectClient();
@@ -25,6 +25,9 @@ const Home: NextPage = () => {
   const delegateNft = async () => {
     setIsloading(true);
     try {
+      if (!isApiConnected()) {
+        await initializeApi();
+      }
       const txHash = await delegateNftTx(
         82093,
         "5GN4m6Lfi6hCcLc9NrUqYKVoWCu2oim6TRT2UGcGoV9ftrUK"
@@ -44,6 +47,9 @@ const Home: NextPage = () => {
   const undelefateNft = async () => {
     setIsloading(true);
     try {
+      if (!isApiConnected()) {
+        await initializeApi();
+      }
       const txHash = await delegateNftTx(82093, undefined);
       setHash(txHash);
       const signedHash = await walletConnectRequest(txHash);
