@@ -19,21 +19,21 @@ import { BLOCKCHAIN_URL, SIGNATURE_TIMEOUT } from "../../lib/constants";
 import { timeoutFunction } from "../../lib/fn";
 import { retry } from "../../lib/fn";
 import { upsertUser } from "../../lib/user";
-import { INft } from "../../lib/graphql";
-import { IUser } from "./game";
 
 export function GenericDelegateButton({
   disabled,
   nftId,
   recipient,
-  setNft,
-  setUser
+  setHasEnter,
+  setHasExit,
+  setIsNftDelegated
 }: {
   disabled?: boolean;
   nftId?: number;
   recipient?: string;
-  setNft?: Dispatch<SetStateAction<INft | undefined>>;
-  setUser?: Dispatch<SetStateAction<IUser | undefined>>;
+  setHasEnter?: Dispatch<SetStateAction<boolean>>;
+  setHasExit?: Dispatch<SetStateAction<boolean>>;
+  setIsNftDelegated?: Dispatch<SetStateAction<boolean>>;
 }) {
   const { account, request } = useWalletConnectClient();
 
@@ -65,11 +65,8 @@ export function GenericDelegateButton({
       WaitUntil.BlockInclusion,
     ]);
     const res = events.findEventOrThrow(NFTDelegatedEvent);
-    if (res && setNft) {
-      setNft((prevState) => {
-        if (prevState)
-          return { ...prevState, isDelegated: Boolean(res.recipient) };
-      });
+    if (res && setIsNftDelegated) {
+      setIsNftDelegated(res.recipient !== null);
     }
     const timestamp = blockInfo.blockHash
       ? Number(await api.query?.timestamp?.now?.at(blockInfo.blockHash))
@@ -85,15 +82,13 @@ export function GenericDelegateButton({
       if (!recipient) throw new Error("No recipient provided");
       if (!nftId) throw new Error("No NFT id provided");
       const timestampEnter = await handleDelegate(account, nftId, recipient);
-      const res = await upsertUser(account, timestampEnter);
-      if (res.ok && setUser) {
-        const user = await res.json();
-        setUser(user);
-      }
+      if (setHasEnter) setHasEnter(true);
+      upsertUser(account, timestampEnter);
     } catch (err) {
       const message = `Error while entering - Details: ${getErrorMessage(err)}`;
       setError(message);
       setIsLoading(false);
+      if (setHasEnter) setHasEnter(false);
       console.error(message);
     } finally {
       setIsLoading(false);
@@ -109,16 +104,14 @@ export function GenericDelegateButton({
       if (nftId) {
         await handleDelegate(account, nftId);
       } else {
-        const res = await upsertUser(account, undefined, new Date());
-        if (res.ok && setUser) {
-          const user = await res.json();
-          setUser(user);
-        }
+        if (setHasExit) setHasExit(true);
+        upsertUser(account, undefined, new Date());
       }
     } catch (err) {
       const message = `Error while exiting - Details: ${getErrorMessage(err)}`;
       setError(message);
       setIsLoading(false);
+      if (setHasExit) setHasExit(true);
       console.error(message);
     } finally {
       setIsLoading(false);
@@ -130,7 +123,7 @@ export function GenericDelegateButton({
       {isUndelegate ? (
         <button
           disabled={!!disabled || isLoading}
-          className={`relative mx-auto mt-10 flex justify-between gap-4 px-7 py-2 pt-[17px] text-3xl shadow-none outline-none disabled:opacity-30 ${
+          className={`relative mx-auto mt-12 flex justify-between gap-4 px-7 py-2 pt-[17px] text-3xl shadow-none outline-none disabled:opacity-30 ${
             isLoading ? "pl-4 pt-4" : "pt-4"
           }`}
           onClick={onExit}
@@ -152,7 +145,7 @@ export function GenericDelegateButton({
       ) : (
         <button
           disabled={!!disabled || isLoading}
-          className={`w-[207px] justify-center relative mx-auto mt-10 flex gap-4 px-7 py-2 p-10 pt-[17px] text-3xl shadow-none outline-none disabled:opacity-30 ${
+          className={`w-[207px] justify-center relative mx-auto mt-10 flex gap-4 px-7 py-2 p-10 pt-[18px] text-3xl shadow-none outline-none disabled:opacity-30 ${
             isLoading ? "pl-5 pt-3" : "pt-2"
           }`}
           onClick={onEnter}

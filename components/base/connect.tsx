@@ -11,6 +11,8 @@ import { Dialog, DialogTrigger, DialogContent } from "@radix-ui/react-dialog";
 import { TernoaIcon } from "../icons/TernoaIcon";
 import { Button } from "../ui/button";
 import { upsertUser } from "../../lib/user";
+import { isMobile } from "@walletconnect/legacy-utils";
+import { IS_RN } from "../../lib/constants";
 
 export function Connect() {
   const { connect } = useWalletConnectClient();
@@ -21,7 +23,6 @@ export function Connect() {
     try {
       setError("");
       const address = await connect();
-      console.log({address})
       if (address) {
         await upsertUser(address);
       }
@@ -74,11 +75,13 @@ export function Connect() {
             Ternoa Wallet
           </div>
         </button>
-        <p className="max-w-xs text-center text-slate-400">
-          You will have to come back to the app manually
-          <br />
-          Ternoa wallet won&apos;t work in energy saving mode
-        </p>
+        {isMobile() && !IS_RN && (
+          <p className="max-w-xs text-center text-slate-400">
+            You will have to come back to the app manually
+            <br />
+            Ternoa wallet won&apos;t work in energy saving mode
+          </p>
+        )}
         {error !== "" && (
           <p className="max-w-xs text-center text-red-500">{error}</p>
         )}

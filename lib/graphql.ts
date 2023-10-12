@@ -25,6 +25,7 @@ export interface gqlResponse<DataType> {
 }
 
 export interface INft {
+  collectionId: string;
   nftId: string;
   owner: string;
   offchainData: string;
@@ -65,6 +66,7 @@ export const getNftsQuery = (input: IChainInput) => {
                 !input.fields
                   ? `
                   nftId
+                  collectionId
                   owner
                   offchainData
                   isDelegated

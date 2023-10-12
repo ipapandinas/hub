@@ -79,7 +79,7 @@ const Home: NextPage = () => {
           <Game />
           {isConnected && (
             <Button
-              className="mt-8"
+              className="mt-10"
               disabled={isDisconnecting}
               onClick={disconnect}
               variant="link"

@@ -23,11 +23,13 @@ export function Game() {
   const { account, isConnected, isInitializing } = useWalletConnectClient();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [nft, setNft] = useState<INft | undefined>(undefined);
-  const [user, setUser] = useState<IUser | undefined>(undefined);
+  const [nftId, setNftId] = useState("");
+  const [isNftDelegated, setIsNftDelegated] = useState(false);
+  const [hasEnter, setHasEnter] = useState(false);
+  const [hasExit, setHasExit] = useState(false);
 
   const currentDate = new Date();
-  const limitDate = new Date(currentDate.getFullYear(), 9, 28);
+  const limitDate = new Date(currentDate.getFullYear(), 9, 12);
   const hasLimitDateReached = currentDate >= limitDate;
 
   useEffect(() => {
@@ -38,7 +40,10 @@ export function Game() {
         try {
           setIsLoading(true);
           await getNfts({ owner: account }).then((res) => {
-            if (shouldUpdate) setNft(res.data[0]);
+            if (shouldUpdate) {
+              setNftId(res.data[0].nftId);
+              setIsNftDelegated(res.data[0].isDelegated);
+            }
           });
         } catch (err) {
           console.error(
@@ -57,15 +62,18 @@ export function Game() {
   }, [account]);
 
   useEffect(() => {
-    console.log("useEffect setUser");
     let shouldUpdate = true;
 
     const loadUser = async () => {
       try {
         if (isConnected && account !== undefined) {
           const res = await getUserById(account);
-          const user = await res.json();
-          if (shouldUpdate) setUser(user);
+          const { user } = (await res.json()) as { user: IUser };
+          const { timestampEnter, timestampExit } = user;
+          if (shouldUpdate) {
+            setHasEnter(timestampEnter !== null);
+            setHasExit(timestampExit !== null);
+          }
         }
       } catch (err) {
         console.log(err);
@@ -86,38 +94,37 @@ export function Game() {
     return <Connect />;
   }
 
-  if (nft === undefined) {
+  if (nftId === "") {
     return <NoSBTMessage />;
   }
 
   if (hasLimitDateReached) {
-    return <LimitReachedMessage nft={nft} setNft={setNft} />;
+    return (
+      <LimitReachedMessage
+        isNftDelegated={isNftDelegated}
+        nftId={Number.parseInt(nftId)}
+        setIsNftDelegated={setIsNftDelegated}
+      />
+    );
   }
-
-  console.log({user, check: user && user.timestampEnter &&  new Date(user.timestampEnter)})
 
   return (
     <div className="flex flex-col items-center">
       <div className="mx-8 text-center text-2xl font-light text-slate-300">
-        {user?.timestampExit
+        {hasExit
           ? "Rewards will be distributed at the end of the game if you are eligible, good luck!"
-          : user?.timestampEnter
+          : hasEnter
           ? "Decide to go home when you want..."
           : "To join the game, delegate your NFT before October 28th."}
       </div>
       <GenericDelegateButton
-        nftId={Number.parseInt(nft.nftId)}
-        disabled={!!user?.timestampEnter}
+        nftId={Number.parseInt(nftId)}
+        disabled={hasEnter}
         recipient={process.env.NEXT_PUBLIC_DELEGATION_RECIPIENT}
-        setNft={setNft}
-        setUser={setUser}
+        setHasEnter={setHasEnter}
       />
-      {user?.timestampEnter && (
-        <GenericDelegateButton
-          disabled={!!user?.timestampExit}
-          setNft={setNft}
-          setUser={setUser}
-        />
+      {hasEnter && (
+        <GenericDelegateButton disabled={hasExit} setHasExit={setHasExit} />
       )}
     </div>
   );
@@ -140,27 +147,29 @@ function NoSBTMessage() {
 }
 
 function LimitReachedMessage({
-  nft,
-  setNft,
+  isNftDelegated,
+  nftId,
+  setIsNftDelegated,
 }: {
-  nft: INft;
-  setNft: Dispatch<SetStateAction<INft | undefined>>;
+  isNftDelegated: boolean;
+  nftId: number;
+  setIsNftDelegated: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
     <div className="flex flex-col items-center">
       <div className="mx-8 text-center text-2xl font-light text-slate-300">
-        {nft.isDelegated
+        {isNftDelegated
           ? "The game is closed now, you can still undelegate your NFT."
           : "It's now too late to enter the game."}
       </div>
-      {nft.isDelegated ? (
+      {isNftDelegated ? (
         <GenericDelegateButton
-          nftId={Number.parseInt(nft.nftId)}
-          setNft={setNft}
+          nftId={nftId}
+          setIsNftDelegated={setIsNftDelegated}
         />
       ) : (
         <GenericDelegateButton
-          nftId={Number.parseInt(nft.nftId)}
+          nftId={nftId}
           disabled
           recipient={process.env.NEXT_PUBLIC_DELEGATION_RECIPIENT}
         />

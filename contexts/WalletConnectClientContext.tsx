@@ -105,15 +105,21 @@ export const WalletConnectClientContextProvider = ({
           pairingTopic: pairing?.topic,
           requiredNamespaces: requiredNamespaces,
         });
-        setIsCreatingUri(false);
-        if (uri) {
-          if (!isMobile) {
-            console.log("URI:", uri);
-            setWalletConnectModalUri(uri);
-            setIsConnecting(true);
-            QRCodeModal.open(uri, undefined);
-          } else {
-            window.location.replace(`ternoa-wallet://wc?uri=${uri}`);
+        const isRNApp = (window as any).isRNApp;
+        if (isRNApp) {
+          const rnView = (window as any).ReactNativeWebView;
+          rnView.postMessage(JSON.stringify({ data: uri, action: "WC_PAIR" }));
+        } else {
+          setIsCreatingUri(false);
+          if (uri) {
+            if (!isMobile) {
+              console.log("URI:", uri);
+              setWalletConnectModalUri(uri);
+              setIsConnecting(true);
+              QRCodeModal.open(uri, undefined);
+            } else {
+              window.location.replace(`ternoa-wallet://wc?uri=${uri}`);
+            }
           }
         }
         const session = await approval();
@@ -225,7 +231,8 @@ export const WalletConnectClientContextProvider = ({
 
   const request = async (hash: string) => {
     if (client) {
-      const redirectPromise = sleepFunction(
+      const isRNApp = (window as any).isRNApp
+      const redirectPromise = isRNApp ? undefined : sleepFunction(
         () => redirectToAppIfMobile(),
         WAIT_BEFORE_OPEN_APP
       );
@@ -245,7 +252,8 @@ export const WalletConnectClientContextProvider = ({
           },
         },
       });
-      const values = await Promise.all([resPromise, redirectPromise]);
+      const promises = isRNApp ? [resPromise] : [resPromise, redirectPromise]
+      const values = await Promise.all(promises)
       return JSON.parse(values[0] as any).signedTxHash;
     } else {
       throw new Error("Client not available");
