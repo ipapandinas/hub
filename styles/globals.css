@@ -44,3 +44,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+#next-image-container span:first-child {
+  position: absolute !important;
+  left: 0;
+  top: 0;
+  height: 70px !important;
+  width: 207px !important;
+}
+
+#next-image-container-long span:first-child {
+  position: absolute !important;
+  left: 0;
+  top: 0;
+  height: 70px !important;
+  width: 344px !important;
+}

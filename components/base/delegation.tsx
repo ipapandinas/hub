@@ -129,6 +129,7 @@ export function GenericDelegateButton({
             isLoading ? "pl-4 pt-4" : "pt-4"
           }`}
           onClick={onExit}
+          id="next-image-container"
         >
           <Image
             className="absolute left-0 top-0"
@@ -150,6 +151,7 @@ export function GenericDelegateButton({
             isLoading ? "pl-5 pt-3" : "pt-2"
           }`}
           onClick={onEnter}
+          id="next-image-container"
         >
           <Image
             className="absolute left-0 top-0"

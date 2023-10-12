@@ -9,15 +9,15 @@ import {
 import Client from "@walletconnect/sign-client";
 import { isMobile as checkIsMobile } from "@walletconnect/legacy-utils";
 import QRCodeModal from "@walletconnect/legacy-modal";
-import { ERROR } from "@walletconnect/utils";
+import { ERROR, getAppMetadata } from "@walletconnect/utils";
 import { IContext } from "./types";
 import { PairingTypes, SessionTypes } from "@walletconnect/types";
 
 const DEFAULT_APP_METADATA = {
-  name: "Ternoa HUB",
-  description: "Ternoa HUB dApp",
-  url: "https://hub.ternoa.network/",
-  icons: ["https://www.ternoa.com/favicon.ico"],
+  name: "Wolf Hunters",
+  description: "Wolf Hunters | TERNOA X WLF PROJECT",
+  url: getAppMetadata().url,
+  icons: ["https://wolf-hunters.vercel.app/favicon.ico"],
 };
 
 export const WalletConnectClientContext = createContext<IContext>(
@@ -96,7 +96,7 @@ export const WalletConnectClientContextProvider = ({
         setIsCreatingUri(true);
         const requiredNamespaces = {
           ternoa: {
-            chains: ["ternoa:18bcdb75a0bba577b084878db2dc2546"],
+            chains: [process.env.NEXT_PUBLIC_WC_CHAIN_ID!],
             events: ["polkadot_event_test"],
             methods: ["sign_message"],
           },
@@ -206,7 +206,7 @@ export const WalletConnectClientContextProvider = ({
       const _client = await Client.init({
         logger: "debug",
         relayUrl: "wss://wallet-connectrelay.ternoa.network/",
-        projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID,
+        projectId: 'WOLF_HUNTERS',
         metadata: DEFAULT_APP_METADATA,
       });
       console.log("CREATED CLIENT: ", _client);
@@ -227,7 +227,7 @@ export const WalletConnectClientContextProvider = ({
         WAIT_BEFORE_OPEN_APP
       );
       const resPromise = client.request<string>({
-        chainId: "ternoa:18bcdb75a0bba577b084878db2dc2546",
+        chainId: process.env.NEXT_PUBLIC_WC_CHAIN_ID!,
         topic: session!.topic,
         request: {
           method: "sign_message",
@@ -273,14 +273,6 @@ export const WalletConnectClientContextProvider = ({
         isCreatingUri,
       }}
     >
-      {/* <WalletConnectModal
-        isOpened={Boolean(walletConnectModalUri)}
-        onClose={() => {
-          setWalletConnectModalUri(undefined);
-          setIsConnecting(false);
-        }}
-        uri={walletConnectModalUri}
-      /> */}
       {children}
     </WalletConnectClientContext.Provider>
   );
