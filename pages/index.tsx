@@ -4,13 +4,15 @@ import Image from "next/image";
 
 import { NextPage } from "next";
 import { Game } from "../components/base/game";
+import { Button } from "../components/ui/button";
+import { useWalletConnectClient } from "../hooks/useWalletConnectClient";
 
 const META_TITLE = "Wolf Hunters | TERNOA X WLF PROJECT";
 const META_DESCRIPTION =
   "Delve into the exhilarating world of WOLF HUNTERS MINI-GAME, brought to you by the incredible WLF PROJECT, on the Ternoa Blockchain. Dive headfirst into this gripping adventure and stand a chance to seize a jaw-dropping $10k prize pool in Ternoa Coin ($CAPS) and Werewolf Token ($WLF) through a limited-time airdrop!";
 
-
 const Home: NextPage = () => {
+  const { disconnect, isConnected, isDisconnecting } = useWalletConnectClient();
   return (
     <>
       <Head>
@@ -73,8 +75,18 @@ const Home: NextPage = () => {
         />
         <h1 className="font-slackside text-5xl">Wolf Hunters</h1>
         <h2 className="text-2xl font-light">Ternoa X WLF Project</h2>
-        <div className="mt-10">
+        <div className="mt-10 flex flex-col justify-center">
           <Game />
+          {isConnected && (
+            <Button
+              className="mt-8"
+              disabled={isDisconnecting}
+              onClick={disconnect}
+              variant="link"
+            >
+              Disconnect wallet
+            </Button>
+          )}
         </div>
         <Image
           className="relative bottom-0 z-0 h-auto w-auto"

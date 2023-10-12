@@ -1,28 +1,28 @@
 import { DefaultSeoProps } from "next-seo";
 
-const defaultDescription =
-  "Unlock the potential of the NFT market without any coding knowledge. Ternoa HUB is designed specifically for creators and entrepreneurs looking to enter the world of non-fungible tokens. Easily create, manage, and sell your own NFTs with our intuitive interface and start building your digital asset empire today.";
+const META_TITLE = "Wolf Hunters | TERNOA X WLF PROJECT";
+const META_DESCRIPTION =
+  "Delve into the exhilarating world of WOLF HUNTERS MINI-GAME, brought to you by the incredible WLF PROJECT, on the Ternoa Blockchain. Dive headfirst into this gripping adventure and stand a chance to seize a jaw-dropping $10k prize pool in Ternoa Coin ($CAPS) and Werewolf Token ($WLF) through a limited-time airdrop!";
 
 const SEO: DefaultSeoProps = {
-  titleTemplate: "Ternoa HUB • %s",
-  defaultTitle: "Ternoa HUB",
-  description: defaultDescription,
-  canonical: "https://hub.ternoa.network/",
+  defaultTitle: META_TITLE,
+  description: META_DESCRIPTION,
+  canonical: "https://wolf-hunters.vercel.app/",
   openGraph: {
-    description: defaultDescription,
+    description: META_DESCRIPTION,
     type: "website",
     locale: "en_IE",
-    siteName: "Ternoa HUB",
+    siteName: META_TITLE,
     images: [
       {
-        url: "https://hub.ternoa.network/logo.png",
+        url: "https://wolf-hunters.vercel.app/assets/logo.png",
         width: 200,
         height: 200,
-        alt: "Ternoa HUB",
+        alt: META_TITLE,
         type: "image/png",
       },
     ],
-  },
+  }
 };
 
 export default SEO;

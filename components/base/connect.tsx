@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { upsertUser } from "../../lib/user";
 
 export function Connect() {
-  const { connect, isConnecting } = useWalletConnectClient();
+  const { connect } = useWalletConnectClient();
 
   const [error, setError] = useState("");
 
@@ -57,7 +57,6 @@ export function Connect() {
         <h3 className="font-slackside text-5xl">Wolf Hunters</h3>
         <p className="font-lato">mini game</p>
         <button
-          disabled={isConnecting}
           className="relative mt-10 flex px-7 py-10 pt-4 text-3xl shadow-none outline-none"
           onClick={onTernoaConnect}
           id="next-image-container-long"
