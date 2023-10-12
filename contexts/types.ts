@@ -5,7 +5,7 @@ export interface IContext {
   client: Client | undefined;
   session: SessionTypes.Struct | undefined;
   pairings: PairingTypes.Struct[];
-  connect: (pairing?: { topic: string }) => Promise<SessionTypes.Struct | null>;
+  connect: (pairing?: { topic: string }) => Promise<string | null>;
   disconnect: () => Promise<void>;
   isInitializing: boolean;
   isConnecting: boolean;

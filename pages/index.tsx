@@ -76,15 +76,15 @@ const Home: NextPage = () => {
         <div className="mt-10">
           <Game />
         </div>
+        <Image
+          className="relative bottom-0 z-0 h-auto w-auto"
+          alt="Wolf Hunters Logo"
+          src="/assets/wolf.gif"
+          priority
+          height={350}
+          width={620}
+        />
       </div>
-      <Image
-        className="relative bottom-0 z-0 h-auto w-auto"
-        alt="Wolf Hunters Logo"
-        src="/assets/wolf.gif"
-        priority
-        height={350}
-        width={620}
-      />
     </>
   );
 };

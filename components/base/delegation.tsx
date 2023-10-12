@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-// import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   NFTDelegatedEvent,
   WaitUntil,
@@ -13,13 +13,12 @@ import {
   submitTxBlocking,
 } from "ternoa-js";
 
-// import { api } from "~/utils/api";
-
 import { useWalletConnectClient } from "../../hooks/useWalletConnectClient";
 import { getErrorMessage } from "../../lib/utils";
 import { BLOCKCHAIN_URL, SIGNATURE_TIMEOUT } from "../../lib/constants";
 import { timeoutFunction } from "../../lib/fn";
 import { retry } from "../../lib/fn";
+import { upsertUser } from "../../lib/user";
 
 export function GenericDelegateButton({
   disabled,
@@ -37,8 +36,6 @@ export function GenericDelegateButton({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // const { mutateAsync: updateUser } = api.user.upsert.useMutation();
-
   const isUndelegate = recipient === undefined;
 
   const handleDelegate = async (
@@ -50,9 +47,9 @@ export function GenericDelegateButton({
       await initializeApi(BLOCKCHAIN_URL);
     }
     const api = getRawApi();
-    const nonce = Number(
-      ((await api.query?.system?.account?.(account)) as any)?.nonce,
-    );
+    // const nonce = Number(
+    //   ((await api.query?.system?.account?.(account)) as any)?.nonce,
+    // );
     const tx = await delegateNftTx(nftId, recipient);
     const signedTx = (await timeoutFunction(
       async () => await request(tx),
@@ -75,14 +72,8 @@ export function GenericDelegateButton({
       if (!recipient) throw new Error("No recipient provided");
       if (!nftId) throw new Error("No NFT id provided");
       const timestampEnter = await handleDelegate(account, nftId, recipient);
-
-      // await updateUser({
-      //   paramsUnique: { userId: account },
-      //   body: {
-      //     timestampEnter,
-      //   },
-      // });
-      if (onSuccess) await onSuccess();
+      const res = await upsertUser(account, timestampEnter);
+      if (res.ok && onSuccess) await onSuccess();
     } catch (err) {
       const message = `Error while entering - Details: ${getErrorMessage(err)}`;
       setError(message);
@@ -103,12 +94,7 @@ export function GenericDelegateButton({
         await handleDelegate(account, nftId);
         if (onSuccess) await onSuccess();
       } else {
-        // await updateUser({
-        //   paramsUnique: { userId: account },
-        //   body: {
-        //     timestampExit: new Date(),
-        //   },
-        // });
+        await upsertUser(account, undefined, new Date());
       }
     } catch (err) {
       const message = `Error while exiting - Details: ${getErrorMessage(err)}`;
@@ -140,7 +126,7 @@ export function GenericDelegateButton({
             priority
           />
           <span className="z-10 flex items-center text-xl font-black">
-            {/* {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />} */}
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />}
             Home
           </span>
         </button>
@@ -162,7 +148,7 @@ export function GenericDelegateButton({
             priority
           />
           <span className="z-10 flex items-center text-xl font-black">
-            {/* {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />} */}
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />}
             Delegate
           </span>
         </button>

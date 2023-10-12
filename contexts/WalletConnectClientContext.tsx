@@ -119,7 +119,10 @@ export const WalletConnectClientContextProvider = ({
         const session = await approval();
         console.log("Established session:", session);
         onSessionConnected(session);
-        return session;
+        return Object.values(session.namespaces)
+          .map((namespace) => namespace.accounts)
+          .flat()[0]
+          .split(":")[2];
       } catch (e) {
         console.error(e);
         return null;
@@ -206,7 +209,7 @@ export const WalletConnectClientContextProvider = ({
       const _client = await Client.init({
         logger: "debug",
         relayUrl: "wss://wallet-connectrelay.ternoa.network/",
-        projectId: 'WOLF_HUNTERS',
+        projectId: "WOLF_HUNTERS",
         metadata: DEFAULT_APP_METADATA,
       });
       console.log("CREATED CLIENT: ", _client);

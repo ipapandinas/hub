@@ -10,28 +10,30 @@ import { Connect } from "./connect";
 import { GenericDelegateButton } from "./delegation";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
+import { getUserById } from "../../lib/user";
+
+interface IUser {
+  id: string;
+  timestampEnter: Date | null;
+  timestampExit: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export function Game() {
   const { account, disconnect, isConnected, isInitializing, isDisconnecting } =
-  useWalletConnectClient();
+    useWalletConnectClient();
 
   const [isClientReady, setIsClientReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [nft, setNft] = useState<INft | undefined>(undefined);
-
-  // const context = api.useContext();
-  // const { data: user, isLoading: isUserLoading } = api.user.byId.useQuery(
-  //   { userId: account ?? "" },
-  //   { enabled: isClientReady && isConnected && account !== undefined },
-  // );
+  const [user, setUser] = useState<IUser | undefined>(undefined);
 
   const currentDate = new Date();
   const limitDate = new Date(currentDate.getFullYear(), 9, 28);
 
-  // const hasBeenDelegated =
-  //   !!nft?.isDelegated || !!user?.data.user?.timestampEnter;
-  // const hasBeenUndelegated =
-  //   !!user?.data.user?.timestampExit && hasBeenDelegated;
+  const hasBeenDelegated = !!nft?.isDelegated || user?.timestampEnter;
+  const hasBeenUndelegated = user?.timestampExit && hasBeenDelegated;
   const hasLimitDateReached = currentDate >= limitDate;
 
   const onSuccess = async () => {
@@ -39,7 +41,11 @@ export function Game() {
       if (prevState)
         return { ...prevState, isDelegated: !prevState.isDelegated };
     });
-    // await context.user.byId.invalidate();
+    if (account) {
+      const res = await getUserById(account);
+      const user = await res.json();
+      setUser(user);
+    }
   };
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export function Game() {
           });
         } catch (err) {
           console.error(
-            `Error while fetching SBT - Details: ${getErrorMessage(err)}`,
+            `Error while fetching SBT - Details: ${getErrorMessage(err)}`
           );
         } finally {
           setIsLoading(false);
@@ -77,6 +83,27 @@ export function Game() {
       shouldUpdate = false;
     };
   }, []);
+
+  useEffect(() => {
+    let shouldUpdate = true;
+
+    const loadUser = async () => {
+      try {
+        if (isClientReady && isConnected && account !== undefined) {
+          const res = await getUserById(account);
+          const user = await res.json();
+          if (shouldUpdate) setUser(user);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    loadUser();
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [isClientReady, isConnected, account]);
 
   if (!isClientReady || isInitializing) {
     return <GameSkeleton />;
@@ -104,60 +131,58 @@ export function Game() {
         </Button>
       </>
     );
+  } else if (hasLimitDateReached) {
+    return (
+      <div className="flex flex-col items-center">
+        <div className="mx-8 text-center text-2xl font-light text-slate-300">
+          {hasBeenDelegated && !hasBeenUndelegated
+            ? "The game is closed now, you can still undelegate your NFT."
+            : "It's now too late to delegate your NFT."}
+        </div>
+        {hasBeenDelegated && !hasBeenUndelegated ? (
+          <GenericDelegateButton
+            nftId={Number.parseInt(nft.nftId)}
+            disabled={!!hasBeenUndelegated}
+            onSuccess={onSuccess}
+          />
+        ) : (
+          <GenericDelegateButton
+            nftId={Number.parseInt(nft.nftId)}
+            disabled
+            recipient={process.env.NEXT_PUBLIC_DELEGATION_RECIPIENT}
+            onSuccess={onSuccess}
+          />
+        )}
+        <Button
+          className="mt-8"
+          disabled={isDisconnecting}
+          onClick={disconnect}
+          variant="link"
+        >
+          Disconnect wallet
+        </Button>
+      </div>
+    );
   }
-  // else if (hasLimitDateReached) {
-  //   return (
-  //     <div className="flex flex-col items-center">
-  //       <div className="mx-8 text-center text-2xl font-light text-slate-300">
-  //         {hasBeenDelegated && !hasBeenUndelegated
-  //           ? "The game is closed now, you can still undelegate your NFT."
-  //           : "It's now too late to delegate your NFT."}
-  //       </div>
-  //       {hasBeenDelegated && !hasBeenUndelegated ? (
-  //         <GenericDelegateButton
-  //           nftId={Number.parseInt(nft.nftId)}
-  //           disabled={hasBeenUndelegated}
-  //           onSuccess={onSuccess}
-  //         />
-  //       ) : (
-  //         <GenericDelegateButton
-  //           nftId={Number.parseInt(nft.nftId)}
-  //           disabled
-  //           recipient={env.NEXT_PUBLIC_DELEGATION_RECIPIENT}
-  //           onSuccess={onSuccess}
-  //         />
-  //       )}
-  //       <Button
-  //         className="mt-8"
-  //         disabled={isDisconnecting}
-  //         onClick={disconnect}
-  //         variant="link"
-  //       >
-  //         Disconnect wallet
-  //       </Button>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="flex flex-col items-center">
-      {/* <div className="mx-8 text-center text-2xl font-light text-slate-300">
+      <div className="mx-8 text-center text-2xl font-light text-slate-300">
         {hasBeenUndelegated
           ? "Rewards will be distributed at the end of the game if you are eligible, good luck!"
           : hasBeenDelegated
           ? "Decide to go home when you want..."
           : "To join the game, delegate your NFT before October 28th."}
-      </div> */}
+      </div>
       <GenericDelegateButton
         nftId={Number.parseInt(nft.nftId)}
-        // disabled={hasBeenDelegated}
+        disabled={!!hasBeenDelegated}
         recipient={process.env.NEXT_PUBLIC_DELEGATION_RECIPIENT}
         onSuccess={onSuccess}
       />
-      {/* {hasBeenDelegated && (
-        <GenericDelegateButton disabled={hasBeenUndelegated} />
-      )} */}
-      <GenericDelegateButton nftId={Number.parseInt(nft.nftId)} />
+      {hasBeenDelegated && (
+        <GenericDelegateButton disabled={!!hasBeenUndelegated} />
+      )}
       <Button
         className="mt-8"
         disabled={isDisconnecting}

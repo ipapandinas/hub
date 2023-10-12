@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { getErrorMessage } from "../../lib/utils";
-// import { api } from "~/utils/api";
 
 import { AppleIcon } from "../icons/AppleIcon";
 import { AndroidIcon } from "../icons/AndroidIcon";
@@ -11,11 +10,10 @@ import { useWalletConnectClient } from "../../hooks/useWalletConnectClient";
 import { Dialog, DialogTrigger, DialogContent } from "@radix-ui/react-dialog";
 import { TernoaIcon } from "../icons/TernoaIcon";
 import { Button } from "../ui/button";
+import { upsertUser } from "../../lib/user";
 
 export function Connect() {
   const { connect, isConnecting } = useWalletConnectClient();
-
-  // const { mutateAsync: createUser } = api.user.create.useMutation();
 
   const [error, setError] = useState("");
 
@@ -23,9 +21,10 @@ export function Connect() {
     try {
       setError("");
       const address = await connect();
-      // if (address) {
-      //   await createUser({ userId: address });
-      // }
+      console.log({address})
+      if (address) {
+        await upsertUser(address);
+      }
     } catch (err) {
       const message = `Error while connecting Ternoa Wallet - Details: ${getErrorMessage(
         err
