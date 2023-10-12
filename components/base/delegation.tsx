@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import Image from "next/image";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   NFTDelegatedEvent,
@@ -19,17 +19,21 @@ import { BLOCKCHAIN_URL, SIGNATURE_TIMEOUT } from "../../lib/constants";
 import { timeoutFunction } from "../../lib/fn";
 import { retry } from "../../lib/fn";
 import { upsertUser } from "../../lib/user";
+import { INft } from "../../lib/graphql";
+import { IUser } from "./game";
 
 export function GenericDelegateButton({
   disabled,
   nftId,
   recipient,
-  onSuccess,
+  setNft,
+  setUser
 }: {
   disabled?: boolean;
   nftId?: number;
   recipient?: string;
-  onSuccess?: () => Promise<void>;
+  setNft?: Dispatch<SetStateAction<INft | undefined>>;
+  setUser?: Dispatch<SetStateAction<IUser | undefined>>;
 }) {
   const { account, request } = useWalletConnectClient();
 
@@ -39,9 +43,9 @@ export function GenericDelegateButton({
   const isUndelegate = recipient === undefined;
 
   const handleDelegate = async (
-    account: string,
+    _account: string,
     nftId: number,
-    recipient?: string,
+    recipient?: string
   ) => {
     if (!isApiConnected()) {
       await initializeApi(BLOCKCHAIN_URL);
@@ -53,11 +57,20 @@ export function GenericDelegateButton({
     const tx = await delegateNftTx(nftId, recipient);
     const signedTx = (await timeoutFunction(
       async () => await request(tx),
-      SIGNATURE_TIMEOUT,
+      SIGNATURE_TIMEOUT
     )) as `0x${string}`;
     if (!signedTx) throw new Error("Unable to sign txn");
-    const { events, blockInfo } = await retry(submitTxBlocking, [signedTx, WaitUntil.BlockInclusion]);
-    events.findEventOrThrow(NFTDelegatedEvent);
+    const { events, blockInfo } = await retry(submitTxBlocking, [
+      signedTx,
+      WaitUntil.BlockInclusion,
+    ]);
+    const res = events.findEventOrThrow(NFTDelegatedEvent);
+    if (res && setNft) {
+      setNft((prevState) => {
+        if (prevState)
+          return { ...prevState, isDelegated: Boolean(res.recipient) };
+      });
+    }
     const timestamp = blockInfo.blockHash
       ? Number(await api.query?.timestamp?.now?.at(blockInfo.blockHash))
       : new Date();
@@ -73,7 +86,10 @@ export function GenericDelegateButton({
       if (!nftId) throw new Error("No NFT id provided");
       const timestampEnter = await handleDelegate(account, nftId, recipient);
       const res = await upsertUser(account, timestampEnter);
-      if (res.ok && onSuccess) await onSuccess();
+      if (res.ok && setUser) {
+        const user = await res.json();
+        setUser(user);
+      }
     } catch (err) {
       const message = `Error while entering - Details: ${getErrorMessage(err)}`;
       setError(message);
@@ -92,9 +108,12 @@ export function GenericDelegateButton({
 
       if (nftId) {
         await handleDelegate(account, nftId);
-        if (onSuccess) await onSuccess();
       } else {
-        await upsertUser(account, undefined, new Date());
+        const res = await upsertUser(account, undefined, new Date());
+        if (res.ok && setUser) {
+          const user = await res.json();
+          setUser(user);
+        }
       }
     } catch (err) {
       const message = `Error while exiting - Details: ${getErrorMessage(err)}`;
@@ -111,7 +130,7 @@ export function GenericDelegateButton({
       {isUndelegate ? (
         <button
           disabled={!!disabled || isLoading}
-          className={`relative mx-auto mt-10 flex justify-between gap-4 px-7 py-2 shadow-none outline-none disabled:opacity-30 ${
+          className={`relative mx-auto mt-10 flex justify-between gap-4 px-7 py-2 pt-[17px] text-3xl shadow-none outline-none disabled:opacity-30 ${
             isLoading ? "pl-4 pt-4" : "pt-4"
           }`}
           onClick={onExit}
@@ -125,7 +144,7 @@ export function GenericDelegateButton({
             width={121}
             priority
           />
-          <span className="z-10 flex items-center text-xl font-black">
+          <span className="z-10 flex items-center font-black">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />}
             Home
           </span>
@@ -133,7 +152,7 @@ export function GenericDelegateButton({
       ) : (
         <button
           disabled={!!disabled || isLoading}
-          className={`relative mx-auto mt-10 flex justify-between gap-4 px-7 py-2 shadow-none outline-none disabled:opacity-30 ${
+          className={`w-[207px] justify-center relative mx-auto mt-10 flex gap-4 px-7 py-2 p-10 pt-[17px] text-3xl shadow-none outline-none disabled:opacity-30 ${
             isLoading ? "pl-5 pt-3" : "pt-2"
           }`}
           onClick={onEnter}
@@ -147,7 +166,7 @@ export function GenericDelegateButton({
             width={207}
             priority
           />
-          <span className="z-10 flex items-center text-xl font-black">
+          <span className="z-10 flex items-center font-black">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin " />}
             Delegate
           </span>
